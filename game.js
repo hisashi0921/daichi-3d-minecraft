@@ -46,11 +46,12 @@ class Game {
 
     async init() {
         // ワールドの初期生成
-        this.world.updateChunks(this.player.position.x, this.player.position.z);
+        this.world.updateChunks(this.player.position.x, this.player.position.z, 5);
         this.world.renderVisibleBlocks(
             this.player.position.x,
             this.player.position.y,
-            this.player.position.z
+            this.player.position.z,
+            5
         );
 
         // プレイヤーを地面の上に配置
@@ -178,12 +179,13 @@ class Game {
             this.player.breakingProgress = 0;
         }
 
-        // ワールド更新
-        this.world.updateChunks(this.player.position.x, this.player.position.z);
+        // ワールド更新（チャンクベースの最適化レンダリング）
+        this.world.updateChunks(this.player.position.x, this.player.position.z, 5);
         this.world.renderVisibleBlocks(
             this.player.position.x,
             this.player.position.y,
-            this.player.position.z
+            this.player.position.z,
+            5
         );
 
         // 昼夜サイクル更新
