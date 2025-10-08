@@ -39,8 +39,8 @@ class DayNightCycle {
         this.moonLight.castShadow = false;
         this.scene.add(this.moonLight);
 
-        // フォグ（霧）
-        this.scene.fog = new THREE.Fog(0x87CEEB, 50, 150);
+        // フォグ（霧）- パフォーマンス最適化で短縮
+        this.scene.fog = new THREE.Fog(0x87CEEB, 30, 80);
     }
 
     update(deltaTime) {

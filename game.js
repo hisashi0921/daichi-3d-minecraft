@@ -10,7 +10,7 @@ class Game {
         this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: false });
 
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.setPixelRatio(1); // パフォーマンス優先で1に固定
 
         // ゲームシステムの初期化
         this.world = new World(this.scene);
@@ -45,13 +45,13 @@ class Game {
     }
 
     async init() {
-        // ワールドの初期生成
-        this.world.updateChunks(this.player.position.x, this.player.position.z, 5);
+        // ワールドの初期生成（レンダー距離3チャンクに削減）
+        this.world.updateChunks(this.player.position.x, this.player.position.z, 3);
         this.world.renderVisibleBlocks(
             this.player.position.x,
             this.player.position.y,
             this.player.position.z,
-            5
+            3
         );
 
         // プレイヤーを地面の上に配置
@@ -179,13 +179,13 @@ class Game {
             this.player.breakingProgress = 0;
         }
 
-        // ワールド更新（チャンクベースの最適化レンダリング）
-        this.world.updateChunks(this.player.position.x, this.player.position.z, 5);
+        // ワールド更新（レンダー距離3チャンク、超軽量化）
+        this.world.updateChunks(this.player.position.x, this.player.position.z, 3);
         this.world.renderVisibleBlocks(
             this.player.position.x,
             this.player.position.y,
             this.player.position.z,
-            5
+            3
         );
 
         // 昼夜サイクル更新

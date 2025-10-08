@@ -205,8 +205,8 @@ class World {
         }
     }
 
-    // チャンク単位でメッシュを構築（GPU最適化）
-    buildChunkMesh(chunkX, chunkZ) {
+    // チャンク単位でメッシュを構築（GPU最適化 + Y軸範囲制限）
+    buildChunkMesh(chunkX, chunkZ, playerY = 40) {
         const key = this.getChunkKey(chunkX, chunkZ);
 
         // 既存のメッシュを削除
@@ -219,9 +219,13 @@ class World {
         // ブロックタイプごとにジオメトリを分ける
         const geometriesByType = new Map();
 
+        // Y軸方向の描画範囲を制限（プレイヤー周辺のみ）
+        const minY = Math.max(0, Math.floor(playerY) - 20);
+        const maxY = Math.min(this.worldHeight, Math.floor(playerY) + 20);
+
         for (let localX = 0; localX < this.chunkSize; localX++) {
             for (let localZ = 0; localZ < this.chunkSize; localZ++) {
-                for (let localY = 0; localY < this.worldHeight; localY++) {
+                for (let localY = minY; localY < maxY; localY++) {
                     const worldX = chunkX * this.chunkSize + localX;
                     const worldZ = chunkZ * this.chunkSize + localZ;
                     const worldY = localY;
@@ -309,13 +313,13 @@ class World {
         const playerChunkX = Math.floor(playerX / this.chunkSize);
         const playerChunkZ = Math.floor(playerZ / this.chunkSize);
 
-        // 表示範囲内のチャンクのメッシュを構築
+        // 表示範囲内のチャンクのメッシュを構築（Y座標も渡す）
         this.chunks.forEach((chunk, key) => {
             const [chunkX, chunkZ] = key.split(',').map(Number);
             const dist = Math.max(Math.abs(chunkX - playerChunkX), Math.abs(chunkZ - playerChunkZ));
 
             if (dist <= renderDistance && chunk.needsRebuild) {
-                this.buildChunkMesh(chunkX, chunkZ);
+                this.buildChunkMesh(chunkX, chunkZ, playerY);
             }
         });
     }
