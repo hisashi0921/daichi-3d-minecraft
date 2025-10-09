@@ -184,12 +184,25 @@ class World {
 
     setBlockType(x, y, z, type) {
         const key = this.getBlockKey(x, y, z);
+        const oldType = this.blockData.get(key);
+
+        // 変更がなければ何もしない（CPU削減）
+        if (oldType === type) return;
+
         this.blockData.set(key, type);
 
-        // 影響を受けるチャンクに再構築フラグを立てる
+        // 影響を受けるチャンクに再構築フラグを立てる（遅延実行）
         const chunkX = Math.floor(x / this.chunkSize);
         const chunkZ = Math.floor(z / this.chunkSize);
         this.markChunkForRebuild(chunkX, chunkZ);
+
+        // チャンク境界のブロックなら隣接チャンクも再構築
+        const localX = ((x % this.chunkSize) + this.chunkSize) % this.chunkSize;
+        const localZ = ((z % this.chunkSize) + this.chunkSize) % this.chunkSize;
+        if (localX === 0) this.markChunkForRebuild(chunkX - 1, chunkZ);
+        if (localX === this.chunkSize - 1) this.markChunkForRebuild(chunkX + 1, chunkZ);
+        if (localZ === 0) this.markChunkForRebuild(chunkX, chunkZ - 1);
+        if (localZ === this.chunkSize - 1) this.markChunkForRebuild(chunkX, chunkZ + 1);
     }
 
     getBlockType(x, y, z) {
@@ -313,13 +326,19 @@ class World {
         const playerChunkX = Math.floor(playerX / this.chunkSize);
         const playerChunkZ = Math.floor(playerZ / this.chunkSize);
 
+        // CPU負荷削減：フレームごとに最大1チャンクのみ再構築
+        let rebuiltThisFrame = false;
+
         // 表示範囲内のチャンクのメッシュを構築（Y座標も渡す）
         this.chunks.forEach((chunk, key) => {
+            if (rebuiltThisFrame) return; // 今フレームは再構築済み
+
             const [chunkX, chunkZ] = key.split(',').map(Number);
             const dist = Math.max(Math.abs(chunkX - playerChunkX), Math.abs(chunkZ - playerChunkZ));
 
             if (dist <= renderDistance && chunk.needsRebuild) {
                 this.buildChunkMesh(chunkX, chunkZ, playerY);
+                rebuiltThisFrame = true;
             }
         });
     }

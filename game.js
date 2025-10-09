@@ -6,8 +6,13 @@ class Game {
 
         // Three.jsの初期化
         this.scene = new THREE.Scene();
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: false });
+        // カメラのfar planeを100に削減（GPU負荷削減）
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+        this.renderer = new THREE.WebGLRenderer({
+            canvas: this.canvas,
+            antialias: false,
+            powerPreference: 'high-performance' // GPU優先モード
+        });
 
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(1); // パフォーマンス優先で1に固定
@@ -35,6 +40,13 @@ class Game {
         // ゲームループ
         this.lastTime = performance.now();
         this.isRunning = false;
+        this.targetFPS = 60; // フレームレート制限（CPU削減）
+        this.frameInterval = 1000 / this.targetFPS;
+        this.lastFrameTime = 0;
+
+        // AI更新の間引き（CPU削減）
+        this.enemyUpdateCounter = 0;
+        this.enemyUpdateInterval = 3; // 3フレームに1回更新
 
         // 入力状態
         this.mouseDown = false;
@@ -45,13 +57,13 @@ class Game {
     }
 
     async init() {
-        // ワールドの初期生成（レンダー距離3チャンクに削減）
-        this.world.updateChunks(this.player.position.x, this.player.position.z, 3);
+        // ワールドの初期生成（レンダー距離2チャンクに超削減）
+        this.world.updateChunks(this.player.position.x, this.player.position.z, 2);
         this.world.renderVisibleBlocks(
             this.player.position.x,
             this.player.position.y,
             this.player.position.z,
-            3
+            2
         );
 
         // プレイヤーを地面の上に配置
@@ -179,20 +191,24 @@ class Game {
             this.player.breakingProgress = 0;
         }
 
-        // ワールド更新（レンダー距離3チャンク、超軽量化）
-        this.world.updateChunks(this.player.position.x, this.player.position.z, 3);
+        // ワールド更新（レンダー距離2チャンク、超超軽量化）
+        this.world.updateChunks(this.player.position.x, this.player.position.z, 2);
         this.world.renderVisibleBlocks(
             this.player.position.x,
             this.player.position.y,
             this.player.position.z,
-            3
+            2
         );
 
         // 昼夜サイクル更新
         this.dayNightCycle.update(deltaTime);
 
-        // 敵更新
-        this.enemyManager.update(deltaTime, this.player, this.dayNightCycle.isNight());
+        // 敵更新（3フレームに1回に間引き、CPU削減）
+        this.enemyUpdateCounter++;
+        if (this.enemyUpdateCounter >= this.enemyUpdateInterval) {
+            this.enemyManager.update(deltaTime * this.enemyUpdateInterval, this.player, this.dayNightCycle.isNight());
+            this.enemyUpdateCounter = 0;
+        }
 
         // UI更新
         this.uiManager.updateStats();
@@ -205,14 +221,21 @@ class Game {
     gameLoop() {
         if (!this.isRunning) return;
 
+        requestAnimationFrame(() => this.gameLoop());
+
         const currentTime = performance.now();
-        const deltaTime = Math.min((currentTime - this.lastTime) / 1000, 0.1); // 最大0.1秒
+        const elapsed = currentTime - this.lastFrameTime;
+
+        // フレームレート制限：60fps (CPU削減)
+        if (elapsed < this.frameInterval) return;
+
+        this.lastFrameTime = currentTime - (elapsed % this.frameInterval);
+
+        const deltaTime = Math.min((currentTime - this.lastTime) / 1000, 0.1);
         this.lastTime = currentTime;
 
         this.update(deltaTime);
         this.render();
-
-        requestAnimationFrame(() => this.gameLoop());
     }
 
     start() {
