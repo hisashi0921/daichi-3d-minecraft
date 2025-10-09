@@ -338,9 +338,9 @@ class EnemyManager {
         this.scene = scene;
         this.world = world;
         this.enemies = [];
-        this.maxEnemies = 5; // パフォーマンス最適化：10→5に削減
+        this.maxEnemies = 3; // 極限軽量化：5→3に削減
         this.spawnTimer = 0;
-        this.spawnInterval = 20; // パフォーマンス最適化：10秒→20秒に変更
+        this.spawnInterval = 30; // 極限軽量化：20秒→30秒に変更
         this.isNight = false;
     }
 

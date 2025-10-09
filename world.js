@@ -4,7 +4,7 @@ class World {
         this.chunkSize = 16;
         this.worldWidth = 100;
         this.worldDepth = 100;
-        this.worldHeight = 80;
+        this.worldHeight = 60; // 超軽量化：80→60に削減
 
         this.chunks = new Map(); // チャンクデータ
         this.chunkMeshes = new Map(); // チャンク単位のメッシュ（最適化）
@@ -52,12 +52,11 @@ class World {
                 const worldX = chunkX * this.chunkSize + localX;
                 const worldZ = chunkZ * this.chunkSize + localZ;
 
+                // 地形生成を簡略化（CPU削減）
                 const height = Math.floor(
                     30 +
-                    Math.sin(worldX * 0.05) * 5 +
-                    Math.cos(worldZ * 0.05) * 5 +
-                    Math.sin(worldX * 0.1) * 2 +
-                    Math.cos(worldZ * 0.1) * 2
+                    Math.sin(worldX * 0.1) * 3 +
+                    Math.cos(worldZ * 0.1) * 3
                 );
 
                 for (let y = 0; y < this.worldHeight; y++) {
@@ -232,9 +231,9 @@ class World {
         // ブロックタイプごとにジオメトリを分ける
         const geometriesByType = new Map();
 
-        // Y軸方向の描画範囲を制限（プレイヤー周辺のみ）
-        const minY = Math.max(0, Math.floor(playerY) - 20);
-        const maxY = Math.min(this.worldHeight, Math.floor(playerY) + 20);
+        // Y軸方向の描画範囲を制限（プレイヤー周辺のみ）超軽量化
+        const minY = Math.max(0, Math.floor(playerY) - 10);
+        const maxY = Math.min(this.worldHeight, Math.floor(playerY) + 10);
 
         for (let localX = 0; localX < this.chunkSize; localX++) {
             for (let localZ = 0; localZ < this.chunkSize; localZ++) {
