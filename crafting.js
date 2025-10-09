@@ -80,9 +80,9 @@ const ItemType = {
 // アイテム情報
 const itemInfo = {
     [ItemType.AIR]: { name: '空気', color: 0x000000, icon: '', drops: ItemType.AIR, solid: false },
-    [ItemType.DIRT]: { name: '土', color: 0x8B4513, icon: '🟤土', drops: ItemType.DIRT, solid: true },
-    [ItemType.GRASS]: { name: '草', color: 0x7CFC00, icon: '🟢草', drops: ItemType.DIRT, solid: true },
-    [ItemType.STONE]: { name: '石', color: 0x808080, icon: '⚪石', drops: ItemType.STONE, solid: true },
+    [ItemType.DIRT]: { name: '土', color: 0x654321, icon: '🟤土', drops: ItemType.DIRT, solid: true },
+    [ItemType.GRASS]: { name: '草', color: 0x5FAD56, icon: '🟢草', drops: ItemType.DIRT, solid: true },
+    [ItemType.STONE]: { name: '石', color: 0x999999, icon: '⚪石', drops: ItemType.STONE, solid: true },
     [ItemType.WOOD]: { name: '原木', color: 0x8B4513, icon: '🟫木', drops: ItemType.WOOD, solid: true },
     [ItemType.LEAVES]: { name: '葉', color: 0x228B22, icon: '🍃葉', drops: ItemType.AIR, solid: true },
     [ItemType.SAND]: { name: '砂', color: 0xF4A460, icon: '🟡砂', drops: ItemType.SAND, solid: true },
