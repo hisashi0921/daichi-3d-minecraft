@@ -23,24 +23,24 @@ class DayNightCycle {
     }
 
     setupLights() {
-        // 環境光
-        this.ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.6);
+        // 環境光 - 明るく（視認性向上）
+        this.ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.8);
         this.scene.add(this.ambientLight);
 
-        // 太陽光（ディレクショナルライト）
-        this.sunLight = new THREE.DirectionalLight(0xFFFFDD, 0.8);
+        // 太陽光（ディレクショナルライト）- 明るく
+        this.sunLight = new THREE.DirectionalLight(0xFFFFDD, 1.0);
         this.sunLight.position.set(50, 100, 50);
         this.sunLight.castShadow = false; // パフォーマンスのため影は無効
         this.scene.add(this.sunLight);
 
-        // 月光
-        this.moonLight = new THREE.DirectionalLight(0x6666AA, 0.2);
+        // 月光 - やや明るく
+        this.moonLight = new THREE.DirectionalLight(0x8888CC, 0.4);
         this.moonLight.position.set(-50, 50, -50);
         this.moonLight.castShadow = false;
         this.scene.add(this.moonLight);
 
-        // フォグ（霧）- パフォーマンス最適化で短縮
-        this.scene.fog = new THREE.Fog(0x87CEEB, 30, 80);
+        // フォグ（霧）- 視認性のため薄く
+        this.scene.fog = new THREE.Fog(0x87CEEB, 20, 60);
     }
 
     update(deltaTime) {
@@ -72,25 +72,25 @@ class DayNightCycle {
 
         this.moonLight.position.set(moonX * 100, moonHeight * 100, -50);
 
-        // 時間帯によって光の強度を変更
+        // 時間帯によって光の強度を変更（視認性重視で明るく）
         if (this.isNight()) {
-            // 夜
-            this.ambientLight.intensity = 0.3;
+            // 夜 - より明るく
+            this.ambientLight.intensity = 0.5;
             this.sunLight.intensity = 0;
-            this.moonLight.intensity = 0.2;
+            this.moonLight.intensity = 0.4;
         } else if (this.isSunrise() || this.isSunset()) {
             // 朝夕
             const transition = this.isSunrise() ?
                 (time - this.phases.SUNRISE.start) / (this.phases.SUNRISE.end - this.phases.SUNRISE.start) :
                 1 - (time - this.phases.SUNSET.start) / (this.phases.SUNSET.end - this.phases.SUNSET.start);
 
-            this.ambientLight.intensity = 0.3 + transition * 0.3;
-            this.sunLight.intensity = transition * 0.8;
-            this.moonLight.intensity = (1 - transition) * 0.2;
+            this.ambientLight.intensity = 0.5 + transition * 0.3;
+            this.sunLight.intensity = transition * 1.0;
+            this.moonLight.intensity = (1 - transition) * 0.4;
         } else {
-            // 昼
-            this.ambientLight.intensity = 0.6;
-            this.sunLight.intensity = 0.8;
+            // 昼 - より明るく
+            this.ambientLight.intensity = 0.8;
+            this.sunLight.intensity = 1.0;
             this.moonLight.intensity = 0;
         }
     }

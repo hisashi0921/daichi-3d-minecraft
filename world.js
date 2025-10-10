@@ -4,7 +4,7 @@ class World {
         this.chunkSize = 16;
         this.worldWidth = 100;
         this.worldDepth = 100;
-        this.worldHeight = 60; // 超軽量化：80→60に削減
+        this.worldHeight = 50; // 極限軽量化：60→50に削減
 
         this.chunks = new Map(); // チャンクデータ
         this.chunkMeshes = new Map(); // チャンク単位のメッシュ（最適化）

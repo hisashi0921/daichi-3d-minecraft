@@ -46,7 +46,7 @@ class Game {
 
         // AI更新の間引き（CPU削減）
         this.enemyUpdateCounter = 0;
-        this.enemyUpdateInterval = 3; // 3フレームに1回更新
+        this.enemyUpdateInterval = 5; // 5フレームに1回更新（さらに軽量化）
 
         // 入力状態
         this.mouseDown = false;
