@@ -65,32 +65,33 @@ class World {
                     if (y === 0) {
                         blockType = ItemType.STONE;
                     } else if (y < height - 5) {
+                        // 鉱石生成を削減（軽量化）
                         if (y < 10) {
                             blockType = ItemType.STONE;
-                            if (Math.random() < 0.002) blockType = ItemType.DIAMOND_ORE;
-                            else if (Math.random() < 0.005) blockType = ItemType.GOLD_ORE;
+                            if (Math.random() < 0.001) blockType = ItemType.DIAMOND_ORE;
+                            else if (Math.random() < 0.002) blockType = ItemType.GOLD_ORE;
                         } else if (y < 20) {
                             blockType = ItemType.STONE;
-                            if (Math.random() < 0.005) blockType = ItemType.IRON_ORE;
-                            else if (Math.random() < 0.008) blockType = ItemType.COAL_ORE;
+                            if (Math.random() < 0.003) blockType = ItemType.IRON_ORE;
+                            else if (Math.random() < 0.004) blockType = ItemType.COAL_ORE;
                         } else {
                             blockType = ItemType.STONE;
-                            if (Math.random() < 0.01) blockType = ItemType.COAL_ORE;
+                            if (Math.random() < 0.005) blockType = ItemType.COAL_ORE;
                         }
                     } else if (y < height - 1) {
                         blockType = ItemType.DIRT;
                     } else if (y === height - 1) {
                         blockType = ItemType.GRASS;
 
-                        if (Math.random() < 0.05) {
-                            if (Math.random() < 0.3) {
+                        // 花の生成を大幅削減（軽量化）
+                        if (Math.random() < 0.01) {
+                            if (Math.random() < 0.5) {
                                 this.setBlockType(worldX, y + 1, worldZ, ItemType.FLOWER_RED);
-                            } else if (Math.random() < 0.3) {
-                                this.setBlockType(worldX, y + 1, worldZ, ItemType.FLOWER_YELLOW);
                             }
                         }
 
-                        if (Math.random() < 0.02) {
+                        // 木の生成を大幅削減（2%→0.3%、85%削減で軽量化）
+                        if (Math.random() < 0.003) {
                             this.generateTree(worldX, y + 1, worldZ);
                         }
                     }
@@ -104,18 +105,19 @@ class World {
     }
 
     generateTree(x, y, z) {
-        const trunkHeight = 4 + Math.floor(Math.random() * 2);
+        // 幹を短く（軽量化）
+        const trunkHeight = 3;
 
         for (let i = 0; i < trunkHeight; i++) {
             this.setBlockType(x, y + i, z, ItemType.WOOD);
         }
 
+        // 葉を小さく簡略化（-2～2 → -1～1、60%削減で軽量化）
         const leafY = y + trunkHeight;
-        for (let dx = -2; dx <= 2; dx++) {
-            for (let dy = -1; dy <= 1; dy++) {
-                for (let dz = -2; dz <= 2; dz++) {
-                    if (dx === 0 && dy === -1 && dz === 0) continue;
-                    if (Math.abs(dx) === 2 && Math.abs(dz) === 2 && Math.random() < 0.5) continue;
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = 0; dy <= 1; dy++) {
+                for (let dz = -1; dz <= 1; dz++) {
+                    if (dx === 0 && dy === 0 && dz === 0) continue; // 幹の位置
                     this.setBlockType(x + dx, leafY + dy, z + dz, ItemType.LEAVES);
                 }
             }
