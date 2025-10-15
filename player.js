@@ -7,8 +7,8 @@ class Player {
         this.position = new THREE.Vector3(50, 40, 50);
         this.velocity = new THREE.Vector3(0, 0, 0);
 
-        // プレイヤーの向き
-        this.rotation = new THREE.Euler(0, 0, 0, 'YXZ');
+        // プレイヤーの向き（少し下向きに初期設定で地面が見やすく）
+        this.rotation = new THREE.Euler(0.2, 0, 0, 'YXZ');
         this.camera.rotation.order = 'YXZ';
 
         // 移動速度
@@ -19,7 +19,7 @@ class Player {
         // プレイヤーのサイズ
         this.width = 0.6;
         this.height = 1.8;
-        this.eyeHeight = 1.6;
+        this.eyeHeight = 1.7; // 視点を少し高く（地面が見やすく）
 
         // 状態
         this.isOnGround = false;

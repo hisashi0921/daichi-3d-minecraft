@@ -276,6 +276,17 @@ class World {
             if (material) {
                 const mesh = new THREE.Mesh(geometry, material);
                 group.add(mesh);
+
+                // エッジライン追加（視認性向上）
+                const edges = new THREE.EdgesGeometry(geometry, 30);
+                const lineMaterial = new THREE.LineBasicMaterial({
+                    color: 0x000000,
+                    opacity: 0.3,
+                    transparent: true,
+                    linewidth: 1
+                });
+                const wireframe = new THREE.LineSegments(edges, lineMaterial);
+                group.add(wireframe);
             }
         });
 

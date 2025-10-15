@@ -6,8 +6,8 @@ class Game {
 
         // Three.jsの初期化
         this.scene = new THREE.Scene();
-        // カメラのfar planeを100に削減（GPU負荷削減）
-        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+        // カメラ設定（FOV 85で広い視野、地面が見やすい）
+        this.camera = new THREE.PerspectiveCamera(85, window.innerWidth / window.innerHeight, 0.1, 100);
         this.renderer = new THREE.WebGLRenderer({
             canvas: this.canvas,
             antialias: false,
