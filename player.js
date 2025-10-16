@@ -8,7 +8,7 @@ class Player {
         this.velocity = new THREE.Vector3(0, 0, 0);
 
         // プレイヤーの向き（下向きに初期設定で地面がしっかり見える）
-        this.rotation = new THREE.Euler(0.4, 0, 0, 'YXZ');
+        this.rotation = new THREE.Euler(0.6, 0, 0, 'YXZ'); // 0.6 rad = ~34度下向き
         this.camera.rotation.order = 'YXZ';
 
         // 移動速度

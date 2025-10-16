@@ -39,8 +39,8 @@ class DayNightCycle {
         this.moonLight.castShadow = false;
         this.scene.add(this.moonLight);
 
-        // フォグ（霧）- 視認性のため薄く
-        this.scene.fog = new THREE.Fog(0x87CEEB, 20, 60);
+        // フォグ（霧）- 地面が見えるように距離を調整
+        this.scene.fog = new THREE.Fog(0x87CEEB, 40, 80);
     }
 
     update(deltaTime) {
