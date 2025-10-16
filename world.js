@@ -233,9 +233,9 @@ class World {
         // ブロックタイプごとにジオメトリを分ける
         const geometriesByType = new Map();
 
-        // Y軸方向の描画範囲を制限（プレイヤー周辺のみ）超軽量化
-        const minY = Math.max(0, Math.floor(playerY) - 10);
-        const maxY = Math.min(this.worldHeight, Math.floor(playerY) + 10);
+        // Y軸方向の描画範囲（地面が見えるように下方向を広く）
+        const minY = Math.max(0, Math.floor(playerY) - 15);
+        const maxY = Math.min(this.worldHeight, Math.floor(playerY) + 8);
 
         for (let localX = 0; localX < this.chunkSize; localX++) {
             for (let localZ = 0; localZ < this.chunkSize; localZ++) {
