@@ -138,6 +138,7 @@ class Game {
                 e.stopPropagation();
                 if (!this.uiManager.isAnyMenuOpen()) {
                     this.mouseDown = true;
+                    console.log('モバイル: ブロック破壊開始');
                 }
             });
 
@@ -145,6 +146,7 @@ class Game {
                 e.preventDefault();
                 e.stopPropagation();
                 this.mouseDown = false;
+                console.log('モバイル: ブロック破壊終了');
             });
 
             tapToBreak.addEventListener('touchcancel', (e) => {
@@ -211,6 +213,7 @@ class Game {
 
         // ブロック破壊（マウス長押し）
         if (this.mouseDown && !this.uiManager.isAnyMenuOpen()) {
+            console.log('ブロック破壊実行中 deltaTime:', deltaTime);
             this.player.breakBlock(deltaTime);
         } else {
             this.player.breakingBlock = null;
