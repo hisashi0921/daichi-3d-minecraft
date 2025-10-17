@@ -373,7 +373,12 @@ class World {
         const meshes = [];
 
         this.chunkMeshes.forEach(group => {
-            group.children.forEach(mesh => meshes.push(mesh));
+            group.children.forEach(mesh => {
+                // ワイヤーフレーム（LineSegments）を除外、Meshのみ対象
+                if (mesh instanceof THREE.Mesh) {
+                    meshes.push(mesh);
+                }
+            });
         });
 
         const intersects = raycaster.intersectObjects(meshes);

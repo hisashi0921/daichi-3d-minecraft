@@ -293,6 +293,32 @@
         #mobile-jump { bottom: 70px; right: 20px; }
         #mobile-attack { bottom: 130px; right: 20px; }
 
+        #mobile-look {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            border-radius: 10px;
+            display: none;
+            pointer-events: all;
+            touch-action: none;
+        }
+
+        #mobile-look-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
         #loading {
             position: fixed;
             top: 0;
@@ -330,6 +356,9 @@
             #mobile-controls {
                 display: block;
             }
+            #mobile-look {
+                display: block;
+            }
         }
     </style>
 </head>
@@ -362,6 +391,10 @@
             <button class="mobile-btn" id="mobile-right">→</button>
             <button class="mobile-btn" id="mobile-jump">⬆</button>
             <button class="mobile-btn" id="mobile-attack">⚔</button>
+        </div>
+
+        <div id="mobile-look">
+            <div id="mobile-look-center"></div>
         </div>
     </div>
 

@@ -81,6 +81,7 @@ class Player {
 
         // タッチコントロール
         this.setupMobileControls();
+        this.setupMobileLook();
     }
 
     handleKeyDown(e) {
@@ -158,6 +159,47 @@ class Player {
         setupButton('mobile-right', 'right');
         setupButton('mobile-jump', 'jump');
         setupButton('mobile-attack', 'attack');
+    }
+
+    setupMobileLook() {
+        const lookPad = document.getElementById('mobile-look');
+        if (!lookPad) return;
+
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let isLooking = false;
+
+        lookPad.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isLooking = true;
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        });
+
+        lookPad.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!isLooking) return;
+
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - touchStartX;
+            const deltaY = touch.clientY - touchStartY;
+
+            // 視点を動かす（感度調整）
+            this.rotation.y -= deltaX * 0.005;
+            this.rotation.x -= deltaY * 0.005;
+
+            // 上下の視点制限
+            this.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.rotation.x));
+
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        });
+
+        lookPad.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            isLooking = false;
+        });
     }
 
     update(deltaTime) {
@@ -265,7 +307,7 @@ class Player {
         direction.applyEuler(this.rotation);
 
         const origin = this.camera.position.clone();
-        return this.world.raycast(origin, direction, 10);
+        return this.world.raycast(origin, direction, 5); // 距離を5に短縮（より近くのブロックを狙いやすく）
     }
 
     getBlockHardness(blockType) {
