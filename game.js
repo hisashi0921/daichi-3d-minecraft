@@ -57,13 +57,15 @@ class Game {
     }
 
     async init() {
-        // ワールドの初期生成（レンダー距離1チャンクに超超削減）
-        this.world.updateChunks(this.player.position.x, this.player.position.z, 1);
+        // ワールドの初期生成（レンダー距離2チャンク、地面が見えるように）
+        this.world.updateChunks(this.player.position.x, this.player.position.z, 2);
+        // 初期化時は全チャンクを一度に構築（forceAll=true）
         this.world.renderVisibleBlocks(
             this.player.position.x,
             this.player.position.y,
             this.player.position.z,
-            1
+            2,
+            true
         );
 
         // プレイヤーを地面の上に配置
@@ -191,13 +193,13 @@ class Game {
             this.player.breakingProgress = 0;
         }
 
-        // ワールド更新（レンダー距離1チャンク、極限軽量化）
-        this.world.updateChunks(this.player.position.x, this.player.position.z, 1);
+        // ワールド更新（レンダー距離2チャンク、地面が見えるバランス）
+        this.world.updateChunks(this.player.position.x, this.player.position.z, 2);
         this.world.renderVisibleBlocks(
             this.player.position.x,
             this.player.position.y,
             this.player.position.z,
-            1
+            2
         );
 
         // 昼夜サイクル更新

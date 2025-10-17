@@ -335,16 +335,16 @@ class World {
         });
     }
 
-    renderVisibleBlocks(playerX, playerY, playerZ, renderDistance = 5) {
+    renderVisibleBlocks(playerX, playerY, playerZ, renderDistance = 5, forceAll = false) {
         const playerChunkX = Math.floor(playerX / this.chunkSize);
         const playerChunkZ = Math.floor(playerZ / this.chunkSize);
 
-        // CPU負荷削減：フレームごとに最大1チャンクのみ再構築
+        // CPU負荷削減：フレームごとに最大1チャンクのみ再構築（forceAllがfalseの場合）
         let rebuiltThisFrame = false;
 
         // 表示範囲内のチャンクのメッシュを構築（Y座標も渡す）
         this.chunks.forEach((chunk, key) => {
-            if (rebuiltThisFrame) return; // 今フレームは再構築済み
+            if (!forceAll && rebuiltThisFrame) return; // 今フレームは再構築済み（forceAll=falseの場合）
 
             const [chunkX, chunkZ] = key.split(',').map(Number);
             const dist = Math.max(Math.abs(chunkX - playerChunkX), Math.abs(chunkZ - playerChunkZ));
