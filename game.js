@@ -130,20 +130,20 @@ class Game {
             }
         });
 
-        // モバイル用ブロック破壊ボタン
-        const mobileAttackBtn = document.getElementById('mobile-attack');
-        if (mobileAttackBtn) {
-            mobileAttackBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                if (!this.uiManager.isAnyMenuOpen()) {
-                    this.mouseDown = true;
-                }
-            });
-            mobileAttackBtn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                this.mouseDown = false;
-            });
-        }
+        // モバイル用：画面タッチでブロック破壊
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (!this.uiManager.isAnyMenuOpen()) {
+                this.mouseDown = true;
+            }
+        });
+
+        this.canvas.addEventListener('touchend', (e) => {
+            this.mouseDown = false;
+        });
+
+        this.canvas.addEventListener('touchcancel', (e) => {
+            this.mouseDown = false;
+        });
     }
 
     placeBlock() {
