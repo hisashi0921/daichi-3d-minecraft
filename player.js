@@ -268,6 +268,35 @@ class Player {
         return this.world.raycast(origin, direction, 10);
     }
 
+    getBlockHardness(blockType) {
+        // ブロックの硬さ（採掘時間）を返す
+        // 数値が小さいほど速く掘れる
+        switch(blockType) {
+            case ItemType.DIRT:
+            case ItemType.GRASS:
+            case ItemType.SAND:
+                return 0.3; // 土系は超速（0.3秒）
+
+            case ItemType.WOOD:
+            case ItemType.LEAVES:
+                return 0.5; // 木系は速い（0.5秒）
+
+            case ItemType.STONE:
+                return 1.0; // 石は普通（1秒）
+
+            case ItemType.COAL_ORE:
+            case ItemType.IRON_ORE:
+                return 1.5; // 鉱石は遅い（1.5秒）
+
+            case ItemType.GOLD_ORE:
+            case ItemType.DIAMOND_ORE:
+                return 2.0; // レア鉱石は超遅い（2秒）
+
+            default:
+                return 1.0; // デフォルトは普通
+        }
+    }
+
     breakBlock(deltaTime) {
         const target = this.getTargetBlock();
 
@@ -277,7 +306,9 @@ class Player {
                 this.breakingBlock.y === target.position.y &&
                 this.breakingBlock.z === target.position.z) {
                 // 同じブロックを破壊中
-                this.breakingProgress += deltaTime * this.breakingSpeed;
+                const hardness = this.getBlockHardness(target.blockType);
+                const breakSpeed = 1.0 / hardness; // 硬さから速度を計算
+                this.breakingProgress += deltaTime * breakSpeed;
 
                 if (this.breakingProgress >= 1.0) {
                     // ブロック破壊完了
