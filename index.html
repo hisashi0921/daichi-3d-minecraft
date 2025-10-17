@@ -40,6 +40,25 @@
             width: 20px;
             height: 20px;
             pointer-events: none;
+            z-index: 10;
+        }
+
+        #tap-to-break {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            pointer-events: all;
+            z-index: 9;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            #tap-to-break {
+                display: block;
+            }
         }
 
         #crosshair::before,
@@ -372,6 +391,7 @@
 
     <div id="ui-overlay">
         <div id="crosshair"></div>
+        <div id="tap-to-break"></div>
 
         <div id="stats">
             <div>時刻: <span id="time-display">正午</span></div>
