@@ -365,16 +365,13 @@ class World {
     }
 
     removeBlock(x, y, z) {
-        console.log('ブロック削除:', x, y, z);
         this.setBlockType(x, y, z, ItemType.AIR);
 
         // 即座にチャンクを再構築（見た目の更新）
         const chunkX = Math.floor(x / this.chunkSize);
         const chunkZ = Math.floor(z / this.chunkSize);
-        const playerY = y; // ブロックのY座標を使用
+        const playerY = y;
         this.buildChunkMesh(chunkX, chunkZ, playerY);
-
-        console.log('チャンク再構築完了:', chunkX, chunkZ);
     }
 
     raycast(origin, direction, maxDistance = 10) {

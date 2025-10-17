@@ -307,15 +307,7 @@ class Player {
         direction.applyEuler(this.rotation);
 
         const origin = this.camera.position.clone();
-        const result = this.world.raycast(origin, direction, 10); // 距離を10に延長（より遠くまで届く）
-
-        if (result) {
-            console.log('レイキャスト成功:', result.blockType);
-        } else {
-            console.log('レイキャスト: ブロックなし');
-        }
-
-        return result;
+        return this.world.raycast(origin, direction, 10);
     }
 
     getBlockHardness(blockType) {
@@ -351,25 +343,20 @@ class Player {
         const target = this.getTargetBlock();
 
         if (target) {
-            console.log('ターゲットブロック:', target.blockType, 'at', target.position);
-
             if (this.breakingBlock &&
                 this.breakingBlock.x === target.position.x &&
                 this.breakingBlock.y === target.position.y &&
                 this.breakingBlock.z === target.position.z) {
                 // 同じブロックを破壊中
                 const hardness = this.getBlockHardness(target.blockType);
-                const breakSpeed = 1.0 / hardness; // 硬さから速度を計算
+                const breakSpeed = 1.0 / hardness;
                 this.breakingProgress += deltaTime * breakSpeed;
-
-                console.log('破壊進行度:', this.breakingProgress.toFixed(2), '/', '1.0');
 
                 if (this.breakingProgress >= 1.0) {
                     // ブロック破壊完了
                     const blockType = target.blockType;
                     const dropType = itemInfo[blockType].drops;
 
-                    console.log('ブロック破壊完了!', blockType);
                     this.world.removeBlock(target.position.x, target.position.y, target.position.z);
 
                     // インベントリに追加
@@ -382,14 +369,10 @@ class Player {
                 }
             } else {
                 // 新しいブロックを破壊開始
-                console.log('新しいブロック破壊開始:', target.blockType);
                 this.breakingBlock = target.position;
                 this.breakingProgress = 0;
             }
         } else {
-            if (this.breakingBlock) {
-                console.log('ターゲットなし - 破壊中断');
-            }
             this.breakingBlock = null;
             this.breakingProgress = 0;
         }
