@@ -153,6 +153,17 @@ class Game {
                 this.mouseDown = false;
             });
         }
+
+        // モバイル用：ブロック設置ボタン
+        const mobilePlaceBtn = document.getElementById('mobile-place');
+        if (mobilePlaceBtn) {
+            mobilePlaceBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (!this.uiManager.isAnyMenuOpen()) {
+                    this.placeBlock();
+                }
+            });
+        }
     }
 
     placeBlock() {
