@@ -129,6 +129,21 @@ class Game {
                 this.attackEnemies();
             }
         });
+
+        // モバイル用ブロック破壊ボタン
+        const mobileAttackBtn = document.getElementById('mobile-attack');
+        if (mobileAttackBtn) {
+            mobileAttackBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (!this.uiManager.isAnyMenuOpen()) {
+                    this.mouseDown = true;
+                }
+            });
+            mobileAttackBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                this.mouseDown = false;
+            });
+        }
     }
 
     placeBlock() {
