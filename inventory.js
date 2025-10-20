@@ -136,6 +136,21 @@ class Inventory {
         this.selectedSlot = 0;
         this.updateUI();
     }
+
+    serialize() {
+        return {
+            slots: this.slots,
+            items: this.items.map(item => ({ type: item.type, count: item.count })),
+            selectedSlot: this.selectedSlot
+        };
+    }
+
+    deserialize(data) {
+        this.slots = data.slots || 9;
+        this.items = data.items.map(item => ({ type: item.type, count: item.count }));
+        this.selectedSlot = data.selectedSlot || 0;
+        this.updateUI();
+    }
 }
 
 class CraftingSystem {

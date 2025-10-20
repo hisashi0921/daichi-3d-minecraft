@@ -164,6 +164,22 @@ class Game {
                 }
             });
         }
+
+        // セーブボタン
+        const saveBtn = document.getElementById('save-button');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                this.saveGame();
+            });
+        }
+
+        // ロードボタン
+        const loadBtn = document.getElementById('load-button');
+        if (loadBtn) {
+            loadBtn.addEventListener('click', () => {
+                this.loadGame();
+            });
+        }
     }
 
     placeBlock() {
@@ -283,6 +299,104 @@ class Game {
 
     stop() {
         this.isRunning = false;
+    }
+
+    saveGame() {
+        try {
+            const saveData = {
+                version: 1,
+                timestamp: Date.now(),
+                player: {
+                    position: {
+                        x: this.player.position.x,
+                        y: this.player.position.y,
+                        z: this.player.position.z
+                    },
+                    rotation: {
+                        x: this.player.rotation.x,
+                        y: this.player.rotation.y
+                    },
+                    health: this.player.health
+                },
+                inventory: window.inventory.serialize(),
+                world: {
+                    modifiedBlocks: Array.from(this.world.blockData.entries())
+                },
+                time: this.dayNightCycle.currentTime
+            };
+
+            localStorage.setItem('minecraftSave', JSON.stringify(saveData));
+            alert('ゲームをセーブしました！');
+            console.log('セーブ完了:', saveData);
+            return true;
+        } catch (error) {
+            console.error('セーブエラー:', error);
+            alert('セーブに失敗しました');
+            return false;
+        }
+    }
+
+    loadGame() {
+        try {
+            const saveDataStr = localStorage.getItem('minecraftSave');
+            if (!saveDataStr) {
+                alert('セーブデータが見つかりません');
+                return false;
+            }
+
+            const saveData = JSON.parse(saveDataStr);
+            console.log('ロード開始:', saveData);
+
+            // プレイヤー位置
+            this.player.position.set(
+                saveData.player.position.x,
+                saveData.player.position.y,
+                saveData.player.position.z
+            );
+
+            // プレイヤー向き
+            this.player.rotation.x = saveData.player.rotation.x;
+            this.player.rotation.y = saveData.player.rotation.y;
+
+            // 体力
+            this.player.health = saveData.player.health;
+
+            // インベントリ
+            if (window.inventory && saveData.inventory) {
+                window.inventory.deserialize(saveData.inventory);
+            }
+
+            // ワールドのブロックデータ
+            this.world.blockData.clear();
+            saveData.world.modifiedBlocks.forEach(([key, type]) => {
+                this.world.blockData.set(key, type);
+            });
+
+            // 全チャンクを再構築
+            this.world.chunks.forEach((chunk, key) => {
+                chunk.needsRebuild = true;
+            });
+
+            // 時刻
+            this.dayNightCycle.currentTime = saveData.time;
+
+            // 画面更新
+            this.world.renderVisibleBlocks(
+                this.player.position.x,
+                this.player.position.y,
+                this.player.position.z,
+                2,
+                true
+            );
+
+            alert('ゲームをロードしました！');
+            console.log('ロード完了');
+            return true;
+        } catch (error) {
+            console.error('ロードエラー:', error);
+            alert('ロードに失敗しました');
+            return false;
+        }
     }
 }
 
