@@ -380,6 +380,7 @@ class Player {
 
     placeBlock(blockType) {
         const target = this.getTargetBlock();
+        console.log('placeBlock - ターゲット:', target);
 
         if (target && blockType !== ItemType.AIR) {
             // ブロックの設置位置（レイキャストしたブロックの隣）
@@ -388,6 +389,7 @@ class Player {
                 y: Math.floor(target.position.y + target.normal.y),
                 z: Math.floor(target.position.z + target.normal.z)
             };
+            console.log('設置予定位置:', placePos);
 
             // プレイヤーと重なっていないかチェック
             const playerBox = new THREE.Box3(
@@ -400,9 +402,19 @@ class Player {
                 new THREE.Vector3(placePos.x + 1, placePos.y + 1, placePos.z + 1)
             );
 
-            if (!playerBox.intersectsBox(blockBox)) {
+            const intersects = playerBox.intersectsBox(blockBox);
+            console.log('プレイヤーと重なり:', intersects);
+
+            if (!intersects) {
+                console.log('✅ ブロック設置実行!');
                 this.world.placeBlock(placePos.x, placePos.y, placePos.z, blockType);
                 return true;
+            } else {
+                console.log('❌ プレイヤーと重なっている');
+            }
+        } else {
+            if (!target) {
+                console.log('❌ ターゲットブロックなし');
             }
         }
 

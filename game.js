@@ -184,17 +184,28 @@ class Game {
 
     placeBlock() {
         const selectedItem = window.inventory.getSelectedItem();
+        console.log('📦 placeBlock呼び出し:', selectedItem);
 
         if (selectedItem.type !== ItemType.AIR && selectedItem.count > 0) {
             const info = itemInfo[selectedItem.type];
+            console.log('アイテム情報:', info);
 
             // 固体ブロックのみ設置可能
             if (info && info.solid) {
+                console.log('ブロック設置試行...');
                 const placed = this.player.placeBlock(selectedItem.type);
+                console.log('設置結果:', placed);
                 if (placed) {
                     window.inventory.removeItem(selectedItem.type, 1);
+                    console.log('✅ ブロック設置成功！');
+                } else {
+                    console.log('❌ ブロック設置失敗（場所が無効）');
                 }
+            } else {
+                console.log('❌ 固体ブロックではありません');
             }
+        } else {
+            console.log('❌ アイテムなし、または個数0');
         }
     }
 
