@@ -20,10 +20,9 @@ class World {
         for (let type in itemInfo) {
             const info = itemInfo[type];
             if (info.solid && type != ItemType.AIR) {
-                this.materials.set(parseInt(type), new THREE.MeshLambertMaterial({
-                    color: info.color,
-                    flatShading: true,
-                    vertexColors: false
+                // MeshBasicMaterialを使用（光の影響を受けず、常に色が見える）
+                this.materials.set(parseInt(type), new THREE.MeshBasicMaterial({
+                    color: info.color
                 }));
             }
         }
@@ -357,10 +356,14 @@ class World {
     }
 
     placeBlock(x, y, z, type) {
-        this.removeBlock(x, y, z);
-
         if (type !== ItemType.AIR && itemInfo[type] && itemInfo[type].solid) {
             this.setBlockType(x, y, z, type);
+
+            // 即座にチャンクを再構築（見た目の更新）
+            const chunkX = Math.floor(x / this.chunkSize);
+            const chunkZ = Math.floor(z / this.chunkSize);
+            const playerY = y;
+            this.buildChunkMesh(chunkX, chunkZ, playerY);
         }
     }
 
