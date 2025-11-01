@@ -96,14 +96,32 @@ class Game {
             groundY--;
         }
 
-        // 頭上に十分な空間があるかチェック（2ブロック分）
-        const hasSpace = !this.world.isBlockSolid(x, groundY + 1, z) &&
-                        !this.world.isBlockSolid(x, groundY + 2, z);
+        // プレイヤーの幅を考慮して、占める全ブロックの頭上空間をチェック
+        const checkSpace = (testX, testZ, testGroundY) => {
+            // プレイヤーが占めるX,Z範囲（幅0.6 = ±0.3）
+            const positions = [
+                [testX, testZ],
+                [testX - 1, testZ],
+                [testX, testZ - 1],
+                [testX - 1, testZ - 1]
+            ];
+
+            for (const [px, pz] of positions) {
+                // 2ブロック分の高さをチェック
+                if (this.world.isBlockSolid(px, testGroundY + 1, pz) ||
+                    this.world.isBlockSolid(px, testGroundY + 2, pz)) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        const hasSpace = checkSpace(x, z, groundY);
 
         if (hasSpace) {
             // 安全な位置が見つかった
             this.player.position.y = groundY + 1.01;
-            console.log(`✅ 安全な位置に配置: Y=${groundY + 1.01}`);
+            console.log(`✅ 安全な位置に配置: Y=${groundY + 1.01} (X=${x}, Z=${z})`);
         } else {
             // 中心に空間がない場合、周囲を探す
             let foundSafe = false;
@@ -116,16 +134,13 @@ class Game {
                         testY--;
                     }
 
-                    // 頭上の空間をチェック
-                    const testHasSpace = !this.world.isBlockSolid(x + dx, testY + 1, z + dz) &&
-                                        !this.world.isBlockSolid(x + dx, testY + 2, z + dz);
-
-                    if (testHasSpace) {
+                    // プレイヤーの幅を考慮してチェック
+                    if (checkSpace(x + dx, z + dz, testY)) {
                         this.player.position.x = x + dx + 0.5;
                         this.player.position.z = z + dz + 0.5;
                         this.player.position.y = testY + 1.01;
                         foundSafe = true;
-                        console.log(`✅ 安全な位置を発見: (${x + dx}, ${testY + 1.01}, ${z + dz})`);
+                        console.log(`✅ 安全な位置を発見: (${x + dx + 0.5}, ${testY + 1.01}, ${z + dz + 0.5})`);
                     }
                 }
             }
@@ -518,13 +533,35 @@ window.checkBlocks = () => {
         console.log(`ポインターロック: ${player.isPointerLocked ? 'YES' : 'NO'}`);
         console.log(`キー入力: W=${player.keys.forward}, S=${player.keys.backward}, A=${player.keys.left}, D=${player.keys.right}`);
 
-        console.log('\n周囲のブロック:');
+        console.log('\n周囲のブロック (中心):');
         for (let dy = 2; dy >= -2; dy--) {
             const by = y + dy;
             const type = world.getBlockType(x, by, z);
             const name = itemInfo[type]?.name || '不明';
             const solid = world.isBlockSolid(x, by, z) ? '固体' : '非固体';
-            console.log(`  Y=${by}: タイプ=${type} (${name}) [${solid}]`);
+            console.log(`  (${x}, ${by}, ${z}): タイプ=${type} (${name}) [${solid}]`);
+        }
+
+        // プレイヤーが占める全ブロックをチェック
+        console.log('\nプレイヤーが占めるブロック範囲:');
+        const minX = Math.floor(player.position.x - player.width / 2);
+        const maxX = Math.floor(player.position.x + player.width / 2);
+        const minY = Math.floor(player.position.y);
+        const maxY = Math.floor(player.position.y + player.height);
+        const minZ = Math.floor(player.position.z - player.width / 2);
+        const maxZ = Math.floor(player.position.z + player.width / 2);
+
+        for (let testY = maxY; testY >= minY; testY--) {
+            for (let testX = minX; testX <= maxX; testX++) {
+                for (let testZ = minZ; testZ <= maxZ; testZ++) {
+                    const type = world.getBlockType(testX, testY, testZ);
+                    const name = itemInfo[type]?.name || '不明';
+                    const solid = world.isBlockSolid(testX, testY, testZ);
+                    if (solid || type !== 0) {
+                        console.log(`  (${testX}, ${testY}, ${testZ}): タイプ=${type} (${name}) [${solid ? '固体！' : '非固体'}]`);
+                    }
+                }
+            }
         }
 
         // 衝突判定テスト
