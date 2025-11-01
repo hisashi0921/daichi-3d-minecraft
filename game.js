@@ -90,23 +90,54 @@ class Game {
         const x = Math.floor(this.player.position.x);
         const z = Math.floor(this.player.position.z);
 
-        // プレイヤーの当たり判定範囲内（±1ブロック）の最も高い地面を探す
-        let maxGroundY = 0;
-        for (let dx = -1; dx <= 1; dx++) {
-            for (let dz = -1; dz <= 1; dz++) {
-                let y = this.world.worldHeight - 1;
-                while (y > 0 && !this.world.isBlockSolid(x + dx, y, z + dz)) {
-                    y--;
+        // 中心から地面を探す（頭上の空間もチェック）
+        let groundY = this.world.worldHeight - 1;
+        while (groundY > 0 && !this.world.isBlockSolid(x, groundY, z)) {
+            groundY--;
+        }
+
+        // 頭上に十分な空間があるかチェック（2ブロック分）
+        const hasSpace = !this.world.isBlockSolid(x, groundY + 1, z) &&
+                        !this.world.isBlockSolid(x, groundY + 2, z);
+
+        if (hasSpace) {
+            // 安全な位置が見つかった
+            this.player.position.y = groundY + 1.01;
+            console.log(`✅ 安全な位置に配置: Y=${groundY + 1.01}`);
+        } else {
+            // 中心に空間がない場合、周囲を探す
+            let foundSafe = false;
+            for (let dx = -2; dx <= 2 && !foundSafe; dx++) {
+                for (let dz = -2; dz <= 2 && !foundSafe; dz++) {
+                    if (dx === 0 && dz === 0) continue; // 中心は既にチェック済み
+
+                    let testY = this.world.worldHeight - 1;
+                    while (testY > 0 && !this.world.isBlockSolid(x + dx, testY, z + dz)) {
+                        testY--;
+                    }
+
+                    // 頭上の空間をチェック
+                    const testHasSpace = !this.world.isBlockSolid(x + dx, testY + 1, z + dz) &&
+                                        !this.world.isBlockSolid(x + dx, testY + 2, z + dz);
+
+                    if (testHasSpace) {
+                        this.player.position.x = x + dx + 0.5;
+                        this.player.position.z = z + dz + 0.5;
+                        this.player.position.y = testY + 1.01;
+                        foundSafe = true;
+                        console.log(`✅ 安全な位置を発見: (${x + dx}, ${testY + 1.01}, ${z + dz})`);
+                    }
                 }
-                if (y > maxGroundY) {
-                    maxGroundY = y;
-                }
+            }
+
+            if (!foundSafe) {
+                // 安全な位置が見つからない場合、デフォルト位置へ
+                this.player.position.y = groundY + 3.01; // 上空に配置
+                console.log(`⚠️ 安全な位置が見つからず、上空に配置: Y=${groundY + 3.01}`);
             }
         }
 
-        // 最も高い地面の上に配置（+1.01で完全に上に）
-        this.player.position.y = maxGroundY + 1.01;
-        this.player.isOnGround = true;
+        this.player.isOnGround = false; // 落下させる
         this.player.velocity.y = 0;
     }
 
