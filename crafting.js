@@ -74,7 +74,19 @@ const ItemType = {
     APPLE: 57,
     GOLDEN_APPLE: 58,
     BUCKET: 59,
-    WATER_BUCKET: 60
+    WATER_BUCKET: 60,
+
+    // 飲食材料 (61-70)
+    SUGAR_CANE: 61,
+    SUGAR: 62,
+    COCOA_BEANS: 63,
+    ICE: 64,
+    COLA: 65,
+    COFFEE_BEANS: 66,
+    COFFEE: 67,
+    LEMON: 68,
+    LEMONADE: 69,
+    WHEAT: 70
 };
 
 // アイテム情報
@@ -145,7 +157,19 @@ const itemInfo = {
     [ItemType.APPLE]: { name: 'リンゴ', color: 0xFF0000, icon: '🍎', drops: ItemType.APPLE, solid: false },
     [ItemType.GOLDEN_APPLE]: { name: '金のリンゴ', color: 0xFFD700, icon: '🍎✨', drops: ItemType.GOLDEN_APPLE, solid: false },
     [ItemType.BUCKET]: { name: 'バケツ', color: 0x808080, icon: '🪣空', drops: ItemType.BUCKET, solid: false },
-    [ItemType.WATER_BUCKET]: { name: '水入りバケツ', color: 0x1E90FF, icon: '🪣水', drops: ItemType.WATER_BUCKET, solid: false }
+    [ItemType.WATER_BUCKET]: { name: '水入りバケツ', color: 0x1E90FF, icon: '🪣水', drops: ItemType.WATER_BUCKET, solid: false },
+
+    // 飲食材料
+    [ItemType.SUGAR_CANE]: { name: 'サトウキビ', color: 0x90EE90, icon: '🌾糖', drops: ItemType.SUGAR_CANE, solid: false },
+    [ItemType.SUGAR]: { name: '砂糖', color: 0xFFFFFF, icon: '🧂糖', drops: ItemType.SUGAR, solid: false },
+    [ItemType.COCOA_BEANS]: { name: 'カカオ豆', color: 0x6F4E37, icon: '🫘豆', drops: ItemType.COCOA_BEANS, solid: false },
+    [ItemType.ICE]: { name: '氷', color: 0xADD8E6, icon: '🧊氷', drops: ItemType.ICE, solid: true },
+    [ItemType.COLA]: { name: 'コーラ', color: 0x3C1414, icon: '🥤', drops: ItemType.COLA, solid: false },
+    [ItemType.COFFEE_BEANS]: { name: 'コーヒー豆', color: 0x4B3621, icon: '☕豆', drops: ItemType.COFFEE_BEANS, solid: false },
+    [ItemType.COFFEE]: { name: 'コーヒー', color: 0x6F4E37, icon: '☕', drops: ItemType.COFFEE, solid: false },
+    [ItemType.LEMON]: { name: 'レモン', color: 0xFFF44F, icon: '🍋', drops: ItemType.LEMON, solid: false },
+    [ItemType.LEMONADE]: { name: 'レモネード', color: 0xFFFACD, icon: '🍹', drops: ItemType.LEMONADE, solid: false },
+    [ItemType.WHEAT]: { name: '小麦', color: 0xF5DEB3, icon: '🌾麦', drops: ItemType.WHEAT, solid: false }
 };
 
 // 2x2レシピ（手でクラフト可能）
@@ -156,7 +180,12 @@ const recipes2x2 = [
     { pattern: [ItemType.STONE, ItemType.STONE, ItemType.STONE, ItemType.STONE], result: ItemType.BRICK, count: 1 },
     { pattern: [ItemType.IRON_INGOT, ItemType.IRON_INGOT, ItemType.IRON_INGOT, ItemType.IRON_INGOT], result: ItemType.IRON_BLOCK, count: 1 },
     { pattern: [ItemType.GOLD_INGOT, ItemType.GOLD_INGOT, ItemType.GOLD_INGOT, ItemType.GOLD_INGOT], result: ItemType.GOLD_BLOCK, count: 1 },
-    { pattern: [ItemType.DIAMOND, ItemType.DIAMOND, ItemType.DIAMOND, ItemType.DIAMOND], result: ItemType.DIAMOND_BLOCK, count: 1 }
+    { pattern: [ItemType.DIAMOND, ItemType.DIAMOND, ItemType.DIAMOND, ItemType.DIAMOND], result: ItemType.DIAMOND_BLOCK, count: 1 },
+
+    // 飲食材料
+    { pattern: [ItemType.SUGAR_CANE, 0, 0, 0], result: ItemType.SUGAR, count: 2 },
+    { pattern: [ItemType.COFFEE_BEANS, 0, 0, 0], result: ItemType.COFFEE, count: 1 },
+    { pattern: [ItemType.WHEAT, ItemType.WHEAT, ItemType.WHEAT, 0], result: ItemType.BREAD, count: 1 }
 ];
 
 // 3x3レシピ（作業台が必要）
@@ -186,7 +215,11 @@ const recipes3x3 = [
     // 楽しいアイテム
     { pattern: [ItemType.DIAMOND, ItemType.GOLD_INGOT, ItemType.IRON_INGOT, ItemType.GOLD_INGOT, ItemType.DIAMOND, ItemType.GOLD_INGOT, ItemType.IRON_INGOT, ItemType.GOLD_INGOT, ItemType.DIAMOND], result: ItemType.RAINBOW_BLOCK, count: 1 },
     { pattern: [ItemType.GOLD_INGOT, ItemType.DIAMOND, ItemType.GOLD_INGOT, ItemType.DIAMOND, ItemType.GOLD_INGOT, ItemType.DIAMOND, ItemType.GOLD_INGOT, ItemType.DIAMOND, ItemType.GOLD_INGOT], result: ItemType.SMILE_BLOCK, count: 1 },
-    { pattern: [ItemType.PLANKS, ItemType.PLANKS, ItemType.PLANKS, ItemType.APPLE, ItemType.APPLE, ItemType.APPLE, ItemType.PLANKS, ItemType.PLANKS, ItemType.PLANKS], result: ItemType.CAKE, count: 1 }
+    { pattern: [ItemType.PLANKS, ItemType.PLANKS, ItemType.PLANKS, ItemType.APPLE, ItemType.APPLE, ItemType.APPLE, ItemType.PLANKS, ItemType.PLANKS, ItemType.PLANKS], result: ItemType.CAKE, count: 1 },
+
+    // 飲料
+    { pattern: [ItemType.SUGAR, ItemType.COCOA_BEANS, ItemType.ICE, ItemType.WATER_BUCKET, 0, 0, 0, 0, 0], result: ItemType.COLA, count: 1 },
+    { pattern: [ItemType.LEMON, ItemType.SUGAR, 0, ItemType.WATER_BUCKET, 0, 0, 0, 0, 0], result: ItemType.LEMONADE, count: 1 }
 ];
 
 // グローバルに公開

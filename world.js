@@ -99,9 +99,27 @@ class World {
                             }
                         }
 
+                        // 新しい採取可能アイテムの生成
+                        const rand = Math.random();
+                        if (rand < 0.005) {
+                            // サトウキビ（0.5%）
+                            this.setBlockType(worldX, y + 1, worldZ, ItemType.SUGAR_CANE);
+                        } else if (rand < 0.008) {
+                            // 小麦（0.3%）
+                            this.setBlockType(worldX, y + 1, worldZ, ItemType.WHEAT);
+                        } else if (rand < 0.01) {
+                            // コーヒー豆（0.2%）
+                            this.setBlockType(worldX, y + 1, worldZ, ItemType.COFFEE_BEANS);
+                        }
+
                         // 木の生成を大幅削減（2%→0.3%、85%削減で軽量化）
                         if (Math.random() < 0.003) {
                             this.generateTree(worldX, y + 1, worldZ);
+                        }
+
+                        // 氷の生成（寒冷バイオーム風）
+                        if (worldX % 50 < 10 && worldZ % 50 < 10 && Math.random() < 0.002) {
+                            this.setBlockType(worldX, y + 1, worldZ, ItemType.ICE);
                         }
                     }
 
@@ -130,6 +148,14 @@ class World {
                     this.setBlockType(x + dx, leafY + dy, z + dz, ItemType.LEAVES);
                 }
             }
+        }
+
+        // 木の実の生成（レモンやカカオ豆）
+        if (Math.random() < 0.3) {
+            const fruitType = Math.random() < 0.5 ? ItemType.LEMON : ItemType.COCOA_BEANS;
+            const offsetX = Math.floor(Math.random() * 3) - 1; // -1, 0, 1
+            const offsetZ = Math.floor(Math.random() * 3) - 1;
+            this.setBlockType(x + offsetX, leafY, z + offsetZ, fruitType);
         }
     }
 
