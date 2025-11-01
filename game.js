@@ -57,9 +57,13 @@ class Game {
     }
 
     async init() {
-        // ワールドの初期生成（レンダー距離2チャンク、地面が見えるように）
+        // ワールドの初期生成（レンダー距離2チャンク）
         this.world.updateChunks(this.player.position.x, this.player.position.z, 2);
-        // 初期化時は全チャンクを一度に構築（forceAll=true）
+
+        // プレイヤーを地面の上に配置（メッシュ構築前に！）
+        this.teleportPlayerToGround();
+
+        // プレイヤーの最終位置でメッシュを構築（forceAll=true）
         this.world.renderVisibleBlocks(
             this.player.position.x,
             this.player.position.y,
@@ -67,9 +71,6 @@ class Game {
             2,
             true
         );
-
-        // プレイヤーを地面の上に配置
-        this.teleportPlayerToGround();
 
         // ローディング画面を非表示
         setTimeout(() => {
@@ -86,15 +87,27 @@ class Game {
     }
 
     teleportPlayerToGround() {
-        let y = this.world.worldHeight - 1;
         const x = Math.floor(this.player.position.x);
         const z = Math.floor(this.player.position.z);
 
-        while (y > 0 && !this.world.isBlockSolid(x, y, z)) {
-            y--;
+        // プレイヤーの当たり判定範囲内（±1ブロック）の最も高い地面を探す
+        let maxGroundY = 0;
+        for (let dx = -1; dx <= 1; dx++) {
+            for (let dz = -1; dz <= 1; dz++) {
+                let y = this.world.worldHeight - 1;
+                while (y > 0 && !this.world.isBlockSolid(x + dx, y, z + dz)) {
+                    y--;
+                }
+                if (y > maxGroundY) {
+                    maxGroundY = y;
+                }
+            }
         }
 
-        this.player.position.y = y + 2;
+        // 最も高い地面の上に配置（+1.01で完全に上に）
+        this.player.position.y = maxGroundY + 1.01;
+        this.player.isOnGround = true;
+        this.player.velocity.y = 0;
     }
 
     setupControls() {
@@ -180,32 +193,32 @@ class Game {
                 this.loadGame();
             });
         }
+
+        // リセットボタン
+        const resetBtn = document.getElementById('reset-button');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                if (confirm('セーブデータを削除して新しいゲームを開始しますか？')) {
+                    localStorage.removeItem('minecraftSave');
+                    location.reload();
+                }
+            });
+        }
     }
 
     placeBlock() {
         const selectedItem = window.inventory.getSelectedItem();
-        console.log('📦 placeBlock呼び出し:', selectedItem);
 
         if (selectedItem.type !== ItemType.AIR && selectedItem.count > 0) {
             const info = itemInfo[selectedItem.type];
-            console.log('アイテム情報:', info);
 
             // 固体ブロックのみ設置可能
             if (info && info.solid) {
-                console.log('ブロック設置試行...');
                 const placed = this.player.placeBlock(selectedItem.type);
-                console.log('設置結果:', placed);
                 if (placed) {
                     window.inventory.removeItem(selectedItem.type, 1);
-                    console.log('✅ ブロック設置成功！');
-                } else {
-                    console.log('❌ ブロック設置失敗（場所が無効）');
                 }
-            } else {
-                console.log('❌ 固体ブロックではありません');
             }
-        } else {
-            console.log('❌ アイテムなし、または個数0');
         }
     }
 
@@ -459,6 +472,58 @@ window.clearEnemies = () => {
     }
 };
 
+window.checkBlocks = () => {
+    if (window.game && window.game.player && window.game.world) {
+        const player = window.game.player;
+        const world = window.game.world;
+        const x = Math.floor(player.position.x);
+        const y = Math.floor(player.position.y);
+        const z = Math.floor(player.position.z);
+
+        console.log(`プレイヤー位置: (${player.position.x.toFixed(2)}, ${player.position.y.toFixed(2)}, ${player.position.z.toFixed(2)})`);
+        console.log(`ブロック座標: (${x}, ${y}, ${z})`);
+        console.log(`速度: (${player.velocity.x.toFixed(2)}, ${player.velocity.y.toFixed(2)}, ${player.velocity.z.toFixed(2)})`);
+        console.log(`地面: ${player.isOnGround ? 'YES' : 'NO'}`);
+        console.log(`ポインターロック: ${player.isPointerLocked ? 'YES' : 'NO'}`);
+        console.log(`キー入力: W=${player.keys.forward}, S=${player.keys.backward}, A=${player.keys.left}, D=${player.keys.right}`);
+
+        console.log('\n周囲のブロック:');
+        for (let dy = 2; dy >= -2; dy--) {
+            const by = y + dy;
+            const type = world.getBlockType(x, by, z);
+            const name = itemInfo[type]?.name || '不明';
+            const solid = world.isBlockSolid(x, by, z) ? '固体' : '非固体';
+            console.log(`  Y=${by}: タイプ=${type} (${name}) [${solid}]`);
+        }
+
+        // 衝突判定テスト
+        console.log('\n衝突判定テスト:');
+        const testBox = new THREE.Box3(
+            new THREE.Vector3(player.position.x - player.width / 2, player.position.y, player.position.z - player.width / 2),
+            new THREE.Vector3(player.position.x + player.width / 2, player.position.y + player.height, player.position.z + player.width / 2)
+        );
+        const collision = world.checkCollision(testBox);
+        console.log(`  プレイヤーBOX衝突: ${collision ? 'YES（埋まっている！）' : 'NO'}`);
+
+        console.log('\n視線方向のブロック:');
+        const target = player.getTargetBlock();
+        if (target) {
+            console.log(`  対象ブロック: (${target.position.x}, ${target.position.y}, ${target.position.z})`);
+            console.log(`  タイプ: ${target.blockType} (${itemInfo[target.blockType]?.name || '不明'})`);
+        } else {
+            console.log('  対象なし');
+        }
+    }
+};
+
+window.fixPlayer = () => {
+    if (window.game && window.game.player) {
+        window.game.teleportPlayerToGround();
+        console.log('プレイヤーを地面の上に移動しました');
+        checkBlocks();
+    }
+};
+
 console.log(`
 🎮 3Dクラフトマスター・アドベンチャー 🎮
 
@@ -467,6 +532,8 @@ console.log(`
 - setTime('noon') : 時刻を変更 (noon/midnight/sunrise/sunset)
 - teleport(100, 50, 100) : テレポート
 - clearEnemies() : 敵を全削除
+- checkBlocks() : プレイヤー周囲のブロック情報を表示
+- fixPlayer() : プレイヤーを地面の上に移動（埋まった時の修正）
 
 操作方法:
 - WASD / 矢印キー : 移動

@@ -20,10 +20,20 @@ class World {
         for (let type in itemInfo) {
             const info = itemInfo[type];
             if (info.solid && type != ItemType.AIR) {
-                // MeshBasicMaterialを使用（光の影響を受けず、常に色が見える）
-                this.materials.set(parseInt(type), new THREE.MeshBasicMaterial({
-                    color: info.color
-                }));
+                // 草ブロックは面ごとに異なる色
+                if (parseInt(type) === ItemType.GRASS) {
+                    this.materials.set(parseInt(type), [
+                        new THREE.MeshBasicMaterial({ color: 0x5FAD56, side: THREE.DoubleSide }), // 上面：緑
+                        new THREE.MeshBasicMaterial({ color: 0x8B7355, side: THREE.DoubleSide }), // 下面：茶色
+                        new THREE.MeshBasicMaterial({ color: 0x8B9D6C, side: THREE.DoubleSide })  // 横面：茶色がかった緑
+                    ]);
+                } else {
+                    // 他のブロックは単一色
+                    this.materials.set(parseInt(type), new THREE.MeshBasicMaterial({
+                        color: info.color,
+                        side: THREE.DoubleSide
+                    }));
+                }
             }
         }
     }
@@ -237,6 +247,10 @@ class World {
         const minY = 0; // 地面の最下層から描画（確実性優先）
         const maxY = this.worldHeight; // 上限まで描画
 
+        let blockCount = 0;
+        let belowPlayerCount = 0;
+        let topFaceCount = 0;
+
         for (let localX = 0; localX < this.chunkSize; localX++) {
             for (let localZ = 0; localZ < this.chunkSize; localZ++) {
                 for (let localY = minY; localY < maxY; localY++) {
@@ -247,16 +261,30 @@ class World {
                     const blockType = this.getBlockType(worldX, worldY, worldZ);
                     if (blockType === ItemType.AIR || !itemInfo[blockType] || !itemInfo[blockType].solid) continue;
 
+                    blockCount++;
+                    if (worldY < playerY - 1) {
+                        belowPlayerCount++;
+                    }
+
                     if (!geometriesByType.has(blockType)) {
                         geometriesByType.set(blockType, {
                             positions: [],
                             normals: [],
-                            indices: []
+                            indices: [],
+                            groups: [], // 面ごとのマテリアルグループ
+                            topFaces: 0
                         });
                     }
 
                     const geomData = geometriesByType.get(blockType);
-                    this.addBlockFaces(worldX, worldY, worldZ, geomData);
+                    const beforeLength = geomData.positions.length;
+                    this.addBlockFaces(worldX, worldY, worldZ, geomData, blockType);
+                    const afterLength = geomData.positions.length;
+
+                    // 上面が追加されたかチェック（1面 = 4頂点 = 12 positions）
+                    if (afterLength - beforeLength >= 12) {
+                        topFaceCount++;
+                    }
                 }
             }
         }
@@ -271,6 +299,13 @@ class World {
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(geomData.positions, 3));
             geometry.setAttribute('normal', new THREE.Float32BufferAttribute(geomData.normals, 3));
             geometry.setIndex(geomData.indices);
+
+            // 草ブロックの場合、面ごとのマテリアルグループを適用
+            if (blockType === ItemType.GRASS && geomData.groups.length > 0) {
+                geomData.groups.forEach(g => {
+                    geometry.addGroup(g.start, g.count, g.materialIndex);
+                });
+            }
 
             const material = this.materials.get(blockType);
             if (material) {
@@ -293,6 +328,16 @@ class World {
         if (group.children.length > 0) {
             this.scene.add(group);
             this.chunkMeshes.set(key, group);
+
+            // デバッグログ
+            let totalFaces = 0;
+            geometriesByType.forEach((geomData, blockType) => {
+                const faceCount = geomData.indices.length / 6; // 6インデックス = 1面
+                totalFaces += faceCount;
+            });
+            console.log(`チャンク(${chunkX}, ${chunkZ})構築: ブロック数=${blockCount}, メッシュ数=${group.children.length / 2}, 面数=${totalFaces}`);
+        } else {
+            console.log(`チャンク(${chunkX}, ${chunkZ}): メッシュなし（ブロック数=${blockCount}）`);
         }
 
         // 再構築フラグをクリア
@@ -303,23 +348,26 @@ class World {
     }
 
     // ブロックの面を追加（隠れた面は除外）
-    addBlockFaces(x, y, z, geomData) {
+    addBlockFaces(x, y, z, geomData, blockType) {
         const faces = [
-            { dir: [0, 1, 0], corners: [[0,1,0], [1,1,0], [1,1,1], [0,1,1]] },  // 上
-            { dir: [0, -1, 0], corners: [[0,0,1], [1,0,1], [1,0,0], [0,0,0]] }, // 下
-            { dir: [1, 0, 0], corners: [[1,0,0], [1,1,0], [1,1,1], [1,0,1]] },  // 右
-            { dir: [-1, 0, 0], corners: [[0,0,1], [0,1,1], [0,1,0], [0,0,0]] }, // 左
-            { dir: [0, 0, 1], corners: [[0,0,1], [1,0,1], [1,1,1], [0,1,1]] },  // 前
-            { dir: [0, 0, -1], corners: [[1,0,0], [0,0,0], [0,1,0], [1,1,0]] }  // 後
+            { name: '上', dir: [0, 1, 0], corners: [[0,1,0], [1,1,0], [1,1,1], [0,1,1]] },  // 上
+            { name: '下', dir: [0, -1, 0], corners: [[0,0,1], [1,0,1], [1,0,0], [0,0,0]] }, // 下
+            { name: '右', dir: [1, 0, 0], corners: [[1,0,0], [1,1,0], [1,1,1], [1,0,1]] },  // 右
+            { name: '左', dir: [-1, 0, 0], corners: [[0,0,1], [0,1,1], [0,1,0], [0,0,0]] }, // 左
+            { name: '前', dir: [0, 0, 1], corners: [[0,0,1], [1,0,1], [1,1,1], [0,1,1]] },  // 前
+            { name: '後', dir: [0, 0, -1], corners: [[1,0,0], [0,0,0], [0,1,0], [1,1,0]] }  // 後
         ];
 
         faces.forEach(face => {
             const [dx, dy, dz] = face.dir;
             const neighborType = this.getBlockType(x + dx, y + dy, z + dz);
 
-            // 隣接ブロックが透明なら面を描画
-            if (neighborType === ItemType.AIR || !itemInfo[neighborType] || !itemInfo[neighborType].solid) {
+            // 全ての面に隠面除去を適用（隣接ブロックがAIRまたは非solidの場合のみ描画）
+            const shouldRender = (neighborType === ItemType.AIR || !itemInfo[neighborType] || !itemInfo[neighborType].solid);
+
+            if (shouldRender) {
                 const baseIndex = geomData.positions.length / 3;
+                const startIndex = geomData.indices.length;
 
                 face.corners.forEach(corner => {
                     geomData.positions.push(x + corner[0], y + corner[1], z + corner[2]);
@@ -330,6 +378,19 @@ class World {
                     baseIndex, baseIndex + 1, baseIndex + 2,
                     baseIndex, baseIndex + 2, baseIndex + 3
                 );
+
+                // 草ブロックの場合、面ごとにマテリアルインデックスを記録
+                if (blockType === ItemType.GRASS) {
+                    let materialIndex = 2; // デフォルトは横面
+                    if (face.name === '上') materialIndex = 0;
+                    else if (face.name === '下') materialIndex = 1;
+
+                    geomData.groups.push({
+                        start: startIndex,
+                        count: 6, // 2つの三角形 = 6インデックス
+                        materialIndex: materialIndex
+                    });
+                }
             }
         });
     }
@@ -375,6 +436,12 @@ class World {
         const chunkZ = Math.floor(z / this.chunkSize);
         const playerY = y;
         this.buildChunkMesh(chunkX, chunkZ, playerY);
+
+        // 隣接チャンクも強制的に再構築
+        this.buildChunkMesh(chunkX - 1, chunkZ, playerY);
+        this.buildChunkMesh(chunkX + 1, chunkZ, playerY);
+        this.buildChunkMesh(chunkX, chunkZ - 1, playerY);
+        this.buildChunkMesh(chunkX, chunkZ + 1, playerY);
     }
 
     raycast(origin, direction, maxDistance = 10) {
@@ -390,6 +457,12 @@ class World {
             });
         });
 
+        // デバッグ: メッシュ数を確認（最初の1回だけ）
+        if (!this._raycastDebugDone) {
+            console.log(`レイキャスト対象: チャンク数=${this.chunkMeshes.size}, メッシュ数=${meshes.length}, blockData数=${this.blockData.size}`);
+            this._raycastDebugDone = true;
+        }
+
         const intersects = raycaster.intersectObjects(meshes);
 
         if (intersects.length > 0) {
@@ -397,19 +470,52 @@ class World {
             const point = intersection.point;
             const normal = intersection.face.normal;
 
-            // ブロック座標を計算
-            const blockX = Math.floor(point.x - normal.x * 0.5);
-            const blockY = Math.floor(point.y - normal.y * 0.5);
-            const blockZ = Math.floor(point.z - normal.z * 0.5);
+            // ブロック座標を計算（改良版）
+            // 交差点から法線と逆方向に0.001進んで、確実にブロック内部の座標を取得
+            const epsilon = 0.001;
+            const insideX = point.x - normal.x * epsilon;
+            const insideY = point.y - normal.y * epsilon;
+            const insideZ = point.z - normal.z * epsilon;
+
+            let blockX = Math.floor(insideX);
+            let blockY = Math.floor(insideY);
+            let blockZ = Math.floor(insideZ);
+
+            let blockType = this.getBlockType(blockX, blockY, blockZ);
+
+            // 周囲のブロックも確認（デバッグ用）
+            const aboveType = this.getBlockType(blockX, blockY + 1, blockZ);
+            const belowType = this.getBlockType(blockX, blockY - 1, blockZ);
+
+            // DoubleSideマテリアルの裏面ヒット問題の修正
+            // 空気ブロックにヒットし、かつ法線が下向きの場合、下のブロックをチェック
+            if (blockType === ItemType.AIR && normal.y < -0.5) {
+                // 下向きの面にヒット = ブロックの下面の裏側 = DoubleSideの問題
+                if (belowType !== ItemType.AIR) {
+                    console.log(`🔧 DoubleSide修正: 空気(${blockY})の下面裏側 → 下のブロック(${blockY - 1})を使用`);
+                    blockY = blockY - 1;
+                    blockType = belowType;
+                }
+            }
+
+            // デバッグログ
+            console.log(`レイキャスト: 交差点=(${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)}), ` +
+                       `法線=(${normal.x}, ${normal.y}, ${normal.z}), ` +
+                       `内部座標=(${insideX.toFixed(3)}, ${insideY.toFixed(3)}, ${insideZ.toFixed(3)}), ` +
+                       `ブロック座標=(${blockX}, ${blockY}, ${blockZ}), ` +
+                       `タイプ=${blockType} (${itemInfo[blockType]?.name || '不明'}), ` +
+                       `上=${aboveType} (${itemInfo[aboveType]?.name || '不明'}), ` +
+                       `下=${belowType} (${itemInfo[belowType]?.name || '不明'})`);
 
             return {
                 position: { x: blockX, y: blockY, z: blockZ },
                 point: point,
                 normal: normal,
-                blockType: this.getBlockType(blockX, blockY, blockZ)
+                blockType: blockType
             };
         }
 
+        console.log('レイキャスト: ヒットなし');
         return null;
     }
 

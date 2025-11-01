@@ -3,8 +3,8 @@ class Player {
         this.camera = camera;
         this.world = world;
 
-        // プレイヤーの位置
-        this.position = new THREE.Vector3(50, 40, 50);
+        // プレイヤーの位置（高い位置から落下させて確実に地面の上に着地）
+        this.position = new THREE.Vector3(50, 50, 50);
         this.velocity = new THREE.Vector3(0, 0, 0);
 
         // プレイヤーの向き（少し下向きで地面が見える程度）
@@ -252,7 +252,8 @@ class Player {
             new THREE.Vector3(newX + this.width / 2, this.position.y + this.height, this.position.z + this.width / 2)
         );
 
-        if (!this.world.checkCollision(boxX)) {
+        const collisionX = this.world.checkCollision(boxX);
+        if (!collisionX) {
             this.position.x = newX;
         } else {
             this.velocity.x = 0;
@@ -283,9 +284,28 @@ class Player {
             this.isOnGround = false;
         } else {
             if (this.velocity.y < 0) {
-                // 着地
+                // 着地 - 周囲の最も高い地面の上に配置
                 this.isOnGround = true;
-                this.position.y = Math.floor(this.position.y);
+
+                const playerBlockX = Math.floor(this.position.x);
+                const playerBlockZ = Math.floor(this.position.z);
+
+                // 周囲3x3範囲で最も高い地面を探す
+                let maxGroundY = 0;
+                for (let dx = -1; dx <= 1; dx++) {
+                    for (let dz = -1; dz <= 1; dz++) {
+                        let y = Math.floor(this.position.y) + 5;
+                        while (y > 0 && !this.world.isBlockSolid(playerBlockX + dx, y, playerBlockZ + dz)) {
+                            y--;
+                        }
+                        if (y > maxGroundY) {
+                            maxGroundY = y;
+                        }
+                    }
+                }
+
+                // 最も高い地面の上に配置
+                this.position.y = maxGroundY + 1.01;
             }
             this.velocity.y = 0;
         }
@@ -307,7 +327,9 @@ class Player {
         direction.applyEuler(this.rotation);
 
         const origin = this.camera.position.clone();
-        return this.world.raycast(origin, direction, 10);
+
+        const result = this.world.raycast(origin, direction, 10);
+        return result;
     }
 
     getBlockHardness(blockType) {
@@ -357,6 +379,8 @@ class Player {
                     const blockType = target.blockType;
                     const dropType = itemInfo[blockType].drops;
 
+                    console.log(`ブロック破壊: (${target.position.x}, ${target.position.y}, ${target.position.z}) タイプ: ${itemInfo[blockType].name}`);
+
                     this.world.removeBlock(target.position.x, target.position.y, target.position.z);
 
                     // インベントリに追加
@@ -369,6 +393,7 @@ class Player {
                 }
             } else {
                 // 新しいブロックを破壊開始
+                console.log(`破壊開始: (${target.position.x}, ${target.position.y}, ${target.position.z}) タイプ: ${itemInfo[target.blockType].name}`);
                 this.breakingBlock = target.position;
                 this.breakingProgress = 0;
             }
@@ -380,7 +405,6 @@ class Player {
 
     placeBlock(blockType) {
         const target = this.getTargetBlock();
-        console.log('placeBlock - ターゲット:', target);
 
         if (target && blockType !== ItemType.AIR) {
             // ブロックの設置位置（レイキャストしたブロックの隣）
@@ -389,7 +413,6 @@ class Player {
                 y: Math.floor(target.position.y + target.normal.y),
                 z: Math.floor(target.position.z + target.normal.z)
             };
-            console.log('設置予定位置:', placePos);
 
             // プレイヤーと重なっていないかチェック
             const playerBox = new THREE.Box3(
@@ -403,19 +426,26 @@ class Player {
             );
 
             const intersects = playerBox.intersectsBox(blockBox);
-            console.log('プレイヤーと重なり:', intersects);
+
+            // 詳細ログ
+            console.log(`🔷 ブロック設置試行:`);
+            console.log(`  対象: (${target.position.x}, ${target.position.y}, ${target.position.z})`);
+            console.log(`  法線: (${target.normal.x}, ${target.normal.y}, ${target.normal.z})`);
+            console.log(`  設置位置: (${placePos.x}, ${placePos.y}, ${placePos.z})`);
+            console.log(`  プレイヤー位置: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}, ${this.position.z.toFixed(2)})`);
+            console.log(`  プレイヤーBOX: (${playerBox.min.x.toFixed(2)}, ${playerBox.min.y.toFixed(2)}, ${playerBox.min.z.toFixed(2)}) to (${playerBox.max.x.toFixed(2)}, ${playerBox.max.y.toFixed(2)}, ${playerBox.max.z.toFixed(2)})`);
+            console.log(`  ブロックBOX: (${blockBox.min.x}, ${blockBox.min.y}, ${blockBox.min.z}) to (${blockBox.max.x}, ${blockBox.max.y}, ${blockBox.max.z})`);
+            console.log(`  衝突判定: ${intersects ? 'YES（失敗）' : 'NO（成功）'}`);
 
             if (!intersects) {
-                console.log('✅ ブロック設置実行!');
+                console.log(`✅ ブロック設置成功: (${placePos.x}, ${placePos.y}, ${placePos.z}) タイプ: ${itemInfo[blockType].name}`);
                 this.world.placeBlock(placePos.x, placePos.y, placePos.z, blockType);
                 return true;
             } else {
-                console.log('❌ プレイヤーと重なっている');
+                console.log(`❌ ブロック設置失敗: プレイヤーと重なっています`);
             }
-        } else {
-            if (!target) {
-                console.log('❌ ターゲットブロックなし');
-            }
+        } else if (!target) {
+            console.log('❌ ブロック設置失敗: ターゲットなし');
         }
 
         return false;
