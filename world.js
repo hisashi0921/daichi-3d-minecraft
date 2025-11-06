@@ -96,37 +96,37 @@ class World {
                     } else if (y === height - 1) {
                         blockType = ItemType.GRASS;
 
-                        // 花の生成を大幅削減（軽量化）
-                        if (Math.random() < 0.01) {
+                        // 花の生成（0.2%）
+                        if (Math.random() < 0.002) {
                             if (Math.random() < 0.5) {
                                 this.setBlockType(worldX, y + 1, worldZ, ItemType.FLOWER_RED);
                             }
                         }
 
-                        // 採取可能アイテムの生成（出現率を低めに調整）
+                        // 採取可能アイテムの生成（さらに出現率を削減）
                         const rand = Math.random();
-                        if (rand < 0.02) {
-                            // サトウキビ（2%）- 3ブロック積み上げ
+                        if (rand < 0.004) {
+                            // サトウキビ（0.4%）- 3ブロック積み上げ
                             this.setBlockType(worldX, y + 1, worldZ, ItemType.SUGAR_CANE);
                             this.setBlockType(worldX, y + 2, worldZ, ItemType.SUGAR_CANE);
                             this.setBlockType(worldX, y + 3, worldZ, ItemType.SUGAR_CANE);
-                        } else if (rand < 0.035) {
-                            // 小麦（1.5%）- 2ブロック積み上げ
+                        } else if (rand < 0.007) {
+                            // 小麦（0.3%）- 2ブロック積み上げ
                             this.setBlockType(worldX, y + 1, worldZ, ItemType.WHEAT);
                             this.setBlockType(worldX, y + 2, worldZ, ItemType.WHEAT);
-                        } else if (rand < 0.045) {
-                            // コーヒー豆（1%）- 2ブロック積み上げ
+                        } else if (rand < 0.009) {
+                            // コーヒー豆（0.2%）- 2ブロック積み上げ
                             this.setBlockType(worldX, y + 1, worldZ, ItemType.COFFEE_BEANS);
                             this.setBlockType(worldX, y + 2, worldZ, ItemType.COFFEE_BEANS);
                         }
 
-                        // 木の生成（1%）
-                        if (Math.random() < 0.01) {
+                        // 木の生成（0.3%）
+                        if (Math.random() < 0.003) {
                             this.generateTree(worldX, y + 1, worldZ);
                         }
 
-                        // 氷の生成（寒冷バイオーム風、1%）- 2ブロック積み上げ
-                        if (worldX % 50 < 10 && worldZ % 50 < 10 && Math.random() < 0.01) {
+                        // 氷の生成（寒冷バイオーム風、0.2%）- 2ブロック積み上げ
+                        if (worldX % 50 < 10 && worldZ % 50 < 10 && Math.random() < 0.002) {
                             this.setBlockType(worldX, y + 1, worldZ, ItemType.ICE);
                             this.setBlockType(worldX, y + 2, worldZ, ItemType.ICE);
                         }
