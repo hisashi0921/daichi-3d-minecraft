@@ -8,7 +8,6 @@ class World {
 
         // ワールド生成のシード値（リセットごとに異なるワールド生成）
         this.seed = Math.random() * 10000;
-        console.log(`🌍 ワールドシード値: ${this.seed.toFixed(2)}`);
 
         this.chunks = new Map(); // チャンクデータ
         this.chunkMeshes = new Map(); // チャンク単位のメッシュ（最適化）
@@ -162,8 +161,6 @@ class World {
         // 木の実の生成（レモンやカカオ豆）- 確率90%に上げて、複数配置して見つけやすく
         if (Math.random() < 0.9) {
             const fruitType = Math.random() < 0.5 ? ItemType.LEMON : ItemType.COCOA_BEANS;
-            const fruitName = fruitType === ItemType.LEMON ? 'レモン' : 'カカオ豆';
-            console.log(`🍋 ${fruitName}生成: (${x}, ${leafY}, ${z})`);
             // 木の周りに2-3個配置
             for (let i = 0; i < 2; i++) {
                 const offsetX = Math.floor(Math.random() * 3) - 1; // -1, 0, 1
@@ -377,9 +374,6 @@ class World {
                 const faceCount = geomData.indices.length / 6; // 6インデックス = 1面
                 totalFaces += faceCount;
             });
-            console.log(`チャンク(${chunkX}, ${chunkZ})構築: ブロック数=${blockCount}, メッシュ数=${group.children.length / 2}, 面数=${totalFaces}`);
-        } else {
-            console.log(`チャンク(${chunkX}, ${chunkZ}): メッシュなし（ブロック数=${blockCount}）`);
         }
 
         // 再構築フラグをクリア
@@ -499,12 +493,6 @@ class World {
             });
         });
 
-        // デバッグ: メッシュ数を確認（最初の1回だけ）
-        if (!this._raycastDebugDone) {
-            console.log(`レイキャスト対象: チャンク数=${this.chunkMeshes.size}, メッシュ数=${meshes.length}, blockData数=${this.blockData.size}`);
-            this._raycastDebugDone = true;
-        }
-
         const intersects = raycaster.intersectObjects(meshes);
 
         if (intersects.length > 0) {
@@ -534,20 +522,10 @@ class World {
             if (blockType === ItemType.AIR && normal.y < -0.5) {
                 // 下向きの面にヒット = ブロックの下面の裏側 = DoubleSideの問題
                 if (belowType !== ItemType.AIR) {
-                    console.log(`🔧 DoubleSide修正: 空気(${blockY})の下面裏側 → 下のブロック(${blockY - 1})を使用`);
                     blockY = blockY - 1;
                     blockType = belowType;
                 }
             }
-
-            // デバッグログ
-            console.log(`レイキャスト: 交差点=(${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)}), ` +
-                       `法線=(${normal.x}, ${normal.y}, ${normal.z}), ` +
-                       `内部座標=(${insideX.toFixed(3)}, ${insideY.toFixed(3)}, ${insideZ.toFixed(3)}), ` +
-                       `ブロック座標=(${blockX}, ${blockY}, ${blockZ}), ` +
-                       `タイプ=${blockType} (${itemInfo[blockType]?.name || '不明'}), ` +
-                       `上=${aboveType} (${itemInfo[aboveType]?.name || '不明'}), ` +
-                       `下=${belowType} (${itemInfo[belowType]?.name || '不明'})`);
 
             return {
                 position: { x: blockX, y: blockY, z: blockZ },
@@ -557,7 +535,6 @@ class World {
             };
         }
 
-        console.log('レイキャスト: ヒットなし');
         return null;
     }
 

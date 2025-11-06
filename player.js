@@ -379,8 +379,6 @@ class Player {
                     const blockType = target.blockType;
                     const dropType = itemInfo[blockType].drops;
 
-                    console.log(`ブロック破壊: (${target.position.x}, ${target.position.y}, ${target.position.z}) タイプ: ${itemInfo[blockType].name}`);
-
                     this.world.removeBlock(target.position.x, target.position.y, target.position.z);
 
                     // インベントリに追加
@@ -393,7 +391,6 @@ class Player {
                 }
             } else {
                 // 新しいブロックを破壊開始
-                console.log(`破壊開始: (${target.position.x}, ${target.position.y}, ${target.position.z}) タイプ: ${itemInfo[target.blockType].name}`);
                 this.breakingBlock = target.position;
                 this.breakingProgress = 0;
             }
@@ -430,24 +427,10 @@ class Player {
             const isAbove = placePos.y >= this.position.y + this.height - 0.1;  // 頭より上
             const intersects = !isBelow && !isAbove && playerBox.intersectsBox(blockBox);
 
-            // 詳細ログ
-            console.log(`🔷 ブロック設置試行:`);
-            console.log(`  対象: (${target.position.x}, ${target.position.y}, ${target.position.z})`);
-            console.log(`  法線: (${target.normal.x}, ${target.normal.y}, ${target.normal.z})`);
-            console.log(`  設置位置: (${placePos.x}, ${placePos.y}, ${placePos.z})`);
-            console.log(`  プレイヤー位置: (${this.position.x.toFixed(2)}, ${this.position.y.toFixed(2)}, ${this.position.z.toFixed(2)})`);
-            console.log(`  足元より下: ${isBelow}, 頭より上: ${isAbove}`);
-            console.log(`  衝突判定: ${intersects ? 'YES（失敗）' : 'NO（成功）'}`);
-
             if (!intersects) {
-                console.log(`✅ ブロック設置成功: (${placePos.x}, ${placePos.y}, ${placePos.z}) タイプ: ${itemInfo[blockType].name}`);
                 this.world.placeBlock(placePos.x, placePos.y, placePos.z, blockType);
                 return true;
-            } else {
-                console.log(`❌ ブロック設置失敗: プレイヤーと重なっています`);
             }
-        } else if (!target) {
-            console.log('❌ ブロック設置失敗: ターゲットなし');
         }
 
         return false;

@@ -164,7 +164,7 @@ const itemInfo = {
     [ItemType.SUGAR]: { name: '砂糖', color: 0xFFFFFF, icon: '🧂糖', drops: ItemType.SUGAR, solid: true },
     [ItemType.COCOA_BEANS]: { name: 'カカオ豆', color: 0xFF6600, icon: '🫘豆', drops: ItemType.COCOA_BEANS, solid: true }, // オレンジで目立つ
     [ItemType.ICE]: { name: '氷', color: 0x00FFFF, icon: '🧊氷', drops: ItemType.ICE, solid: true }, // シアンで目立つ
-    [ItemType.COLA]: { name: 'コーラ', color: 0x3C1414, icon: '🥤', drops: ItemType.COLA, solid: true },
+    [ItemType.COLA]: { name: 'コーラ', color: 0xA0522D, icon: '🥤コ', drops: ItemType.COLA, solid: true },
     [ItemType.COFFEE_BEANS]: { name: 'コーヒー豆', color: 0xFFAA00, icon: '☕豆', drops: ItemType.COFFEE_BEANS, solid: true }, // 明るいオレンジで目立つ
     [ItemType.COFFEE]: { name: 'コーヒー', color: 0x6F4E37, icon: '☕', drops: ItemType.COFFEE, solid: true },
     [ItemType.LEMON]: { name: 'レモン', color: 0xFFFF00, icon: '🍋', drops: ItemType.LEMON, solid: true }, // 鮮やかな黄色
