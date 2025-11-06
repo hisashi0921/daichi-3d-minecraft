@@ -379,11 +379,16 @@ class Player {
                     const blockType = target.blockType;
                     const dropType = itemInfo[blockType].drops;
 
-                    this.world.removeBlock(target.position.x, target.position.y, target.position.z);
+                    // コーラの場合は爆発！
+                    if (blockType === ItemType.COLA) {
+                        this.explodeCola(target.position.x, target.position.y, target.position.z);
+                    } else {
+                        this.world.removeBlock(target.position.x, target.position.y, target.position.z);
 
-                    // インベントリに追加
-                    if (window.inventory && dropType !== ItemType.AIR) {
-                        window.inventory.addItem(dropType, 1);
+                        // インベントリに追加
+                        if (window.inventory && dropType !== ItemType.AIR) {
+                            window.inventory.addItem(dropType, 1);
+                        }
                     }
 
                     this.breakingBlock = null;
@@ -434,6 +439,48 @@ class Player {
         }
 
         return false;
+    }
+
+    explodeCola(x, y, z) {
+        // コーラ爆発エフェクト！
+        const explosionRadius = 2; // 爆発半径
+
+        // 中心のコーラを削除
+        this.world.removeBlock(x, y, z);
+
+        // 周囲のブロックを破壊
+        for (let dx = -explosionRadius; dx <= explosionRadius; dx++) {
+            for (let dy = -explosionRadius; dy <= explosionRadius; dy++) {
+                for (let dz = -explosionRadius; dz <= explosionRadius; dz++) {
+                    const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+                    // 球状の爆発範囲
+                    if (distance <= explosionRadius) {
+                        const blockX = x + dx;
+                        const blockY = y + dy;
+                        const blockZ = z + dz;
+
+                        const blockType = this.world.getBlockType(blockX, blockY, blockZ);
+
+                        // 空気でないブロックを破壊（石や強固なブロックも破壊）
+                        if (blockType !== ItemType.AIR) {
+                            this.world.removeBlock(blockX, blockY, blockZ);
+                        }
+                    }
+                }
+            }
+        }
+
+        // コーラを2-4個ドロップ
+        const dropCount = Math.floor(Math.random() * 3) + 2; // 2-4個
+        if (window.inventory) {
+            window.inventory.addItem(ItemType.COLA, dropCount);
+        }
+
+        // 爆発メッセージ
+        if (window.game && window.game.showMessage) {
+            window.game.showMessage(`💥 コーラ爆発！ x${dropCount}個入手`);
+        }
     }
 
     takeDamage(amount) {
